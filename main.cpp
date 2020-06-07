@@ -4,6 +4,7 @@
 #include <vector>
 #include "linkCalculator.h"
 #include "matrixDistance.h"
+#include "Instance.h"
 #include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
 
 using namespace std;
@@ -35,8 +36,11 @@ int main()
     getline(file, line, ';');
     json vClients = json::parse(line);
 
+    Instance* instance = new Instance(&config, &matrizSNRMin, &matrizAlcance, &vGateways, &vClients);
+
     file.close();
 
-    matrixDistance* MD = new matrixDistance(vGateways,vClients);
-    MD->getAllDistG(5);
+    matrixDistance(instance);
+    getAllDistG(instance,5);
+
 }

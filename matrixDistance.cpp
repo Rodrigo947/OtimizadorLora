@@ -3,27 +3,29 @@
 #include <vector>
 #include <math.h>
 #include "matrixDistance.h"
+#include "Instance.h"
 #include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;
 
-matrixDistance::matrixDistance(json vGateways, json vClients)
+void matrixDistance(Instance* instancia)
 {
-    
     long double lngG,latG,lngC,latC;
+    json* vGateways = instancia->getvGateways();
+    json* vClients = instancia->getvClients();
     
-    for (int i = 0; i < vGateways.size(); i++)
+    for (int i = 0; i < vGateways->size(); i++)
     {
         vector<long double> row;
-        lngG = vGateways[i]["lng"];
-        latG = vGateways[i]["lat"];
+        lngG = vGateways->at(i)["lng"];
+        latG = vGateways->at(i)["lat"];
         
-        for (int j = 0; j < vClients.size(); j++)
+        for (int j = 0; j < vClients->size(); j++)
         {
-            if(vGateways[i]["sf"] == vClients[j]["sf"]){ //calcula a distancia do par Gateway e Client que possuem sf iguais
-                lngC = vClients[j]["lng"];
-                latC = vClients[j]["lat"];
+            if(vGateways->at(i)["sf"] == vClients->at(j)["sf"]){ //calcula a distancia do par Gateway e Client que possuem sf iguais
+                lngC = vClients->at(j)["lng"];
+                latC = vClients->at(j)["lat"];
         
                 row.push_back( distance(latG,lngG,latC,lngC) );
             }
@@ -32,18 +34,18 @@ matrixDistance::matrixDistance(json vGateways, json vClients)
             }
             
         }   
-        this->matrix.push_back(row);
+        instancia->setDistance(row);
     }
     
 }
 
-long double matrixDistance::toRadians(const long double degree)
+long double toRadians(const long double degree)
 {
     long double one_deg = (M_PI) / 180;
     return (one_deg * degree);
 }
 
-long double matrixDistance::distance(long double lat1, long double long1,
+long double distance(long double lat1, long double long1,
                      long double lat2, long double long2)
 {
 
@@ -74,16 +76,21 @@ long double matrixDistance::distance(long double lat1, long double long1,
 }
 
 
-long double matrixDistance::getD(int idGateway,int idClient){
-    return this->matrix[idGateway][idClient];
+long double getD(Instance* instancia,int idGateway,int idClient){
+    return instancia->getDistance(idGateway,idClient);
 }
 /*
     Retorna todas as distancias do gateway escolhido
 */
-void matrixDistance::getAllDistG(int idGateway){
+void getAllDistG(Instance* instancia,int idGateway){
+    
+    int size = instancia->getvClients()->size();
     cout << "DISTANCE TABLE - GATEWAY ID " << idGateway << endl;
-    for (int client = 0; client < this->matrix[idGateway].size(); client++)
-        if(this->matrix[idGateway][client] != -1)
-            cout << client << " - " << this->matrix[idGateway][client] << " | ";
+
+    for (int client = 0; client < size; client++){
+        long double dist = instancia->getDistance(idGateway,client);
+        if(dist != -1)
+            cout << client << " - " << dist << " | ";
+    }
     cout << endl;
 }

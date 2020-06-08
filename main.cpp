@@ -4,12 +4,11 @@
 #include <vector>
 #include "linkCalculator.h"
 #include "Instance.h"
+#include "Construtive.h"
 #include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;
-
-
 
 int main()
 {
@@ -36,7 +35,11 @@ int main()
     json vClients = json::parse(line);
 
     Instance* instance = new Instance(&config, &matrizSNRMin, &matrizAlcance, &vGateways, &vClients);
-    instance->getAllDistG(5);
+    Construtive* c = new Construtive(instance);
+    c->getCanditado(0);
+    c->getCanditado(1);
+    c->getCanditado(799);
+
     file.close();
 
 }

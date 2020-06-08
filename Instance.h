@@ -19,13 +19,15 @@ class Instance
 
     public:
        Instance(json* config, json* matrizSNRMin, json* matrizAlcance, json* vGateways, json* vClients);
+       void populaMatrixDistance();    
+       void getAllDistG(int idGateway);
        json* getConfig();
        json* getmatrixSNRMin();
        json* getmatrixAlcance();
        json* getvGateways();
        json* getvClients();
+       vector< vector<long double> >* getmatrixDistance();
        long double getDistance(int idGateway, int idClient);
-       void setDistance(vector<long double> row);
 };
 
 

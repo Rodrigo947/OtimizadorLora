@@ -26,6 +26,9 @@ int main()
     json matrizSNRMin = json::parse(line);
 
     getline(file, line, ';');
+    json sensibilidades = json::parse(line);
+
+    getline(file, line, ';');
     json matrizAlcance = json::parse(line);
 
     getline(file, line, ';');
@@ -34,11 +37,10 @@ int main()
     getline(file, line, ';');
     json vClients = json::parse(line);
 
-    Instance* instance = new Instance(&config, &matrizSNRMin, &matrizAlcance, &vGateways, &vClients);
+    Instance* instance = new Instance(&config, &matrizSNRMin, &sensibilidades, &matrizAlcance, &vGateways, &vClients);
     Construtive* c = new Construtive(instance);
-    c->getCanditado(0);
-    c->getCanditado(1);
-    c->getCanditado(799);
+    c->Execute(instance);
+
 
     file.close();
 

@@ -8,11 +8,12 @@
 using namespace std;
 using json = nlohmann::json;
 
-Instance::Instance(json* config, json* matrixSNRMin, json* matrixAlcance, json* vGateways, json* vClients)
+Instance::Instance(json* config, json* matrixSNRMin, json* sensibilidades, json* matrixAlcance, json* vGateways, json* vClients)
 {
     
     this->config = config;
     this->matrixSNRMin = matrixSNRMin;
+    this->sensibilidades = sensibilidades;
     this->matrixAlcance = matrixAlcance;
     this->vGateways = vGateways;
     this->vClients = vClients;
@@ -54,6 +55,9 @@ json* Instance::getConfig(){
 };
 json* Instance::getmatrixSNRMin(){
     return this->matrixSNRMin;
+};
+json* Instance::getSensibilidades(){
+    return this->sensibilidades;
 };
 json* Instance::getmatrixAlcance(){
     return this->matrixAlcance;

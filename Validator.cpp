@@ -8,10 +8,29 @@
 using namespace std;
 using json = nlohmann::json;
 
+/*
+    @return 0 -> valido
+    1 -> sf diferente
+*/
+int validator(Instance* instance, int idG, int idC,vector< vector<long double> >* matrixSolution){
+    json* vClients = instance->getvClients();
+    json* vGateways = instance->getvGateways();
+    int sfG = vGateways->at(idG)["sf"];
+    int sfC = vClients->at(idC)["sf"];
 
-
-int validator(Instance* instance, int idGateway, int idClient){
-    return 1;
+    if(sfG != sfC){
+        return 1;
+    }
+    else{
+        json* matrixSNRMin = instance->getmatrixSNRMin();
+        json* sensibilidades = instance->getSensibilidades();
+        json* matrixAlcance = instance->getmatrixAlcance();
+        float SNRmin = matrixSNRMin->at(sfG);
+        float sensibilidade = sensibilidades->at(sfC);
+        float dbm = vClients->at(idC)["dbm"];
+        float alcanceMax = matrixAlcance->at(dbm)[sfC];
+    }
+    return 0;
 };
 
 

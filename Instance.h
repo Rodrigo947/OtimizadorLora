@@ -12,22 +12,24 @@ class Instance
     private:
         json* config;
         json* matrixSNRMin;
+        json* sensibilidades;
         json* matrixAlcance;
         json* vGateways;
         json* vClients;
         vector< vector<long double> > matrixDistance;
 
     public:
-       Instance(json* config, json* matrizSNRMin, json* matrizAlcance, json* vGateways, json* vClients);
-       void populaMatrixDistance();    
-       void getAllDistG(int idGateway);
+       Instance(json* config, json* matrizSNRMin, json* sensibilidades, json* matrizAlcance, json* vGateways, json* vClients);
+       void populaMatrixDistance();
+       void getAllDistG(int idG);
        json* getConfig();
        json* getmatrixSNRMin();
+       json* getSensibilidades();
        json* getmatrixAlcance();
        json* getvGateways();
        json* getvClients();
        vector< vector<long double> >* getmatrixDistance();
-       long double getDistance(int idGateway, int idClient);
+       long double getDistance(int idG, int idC);
 };
 
 

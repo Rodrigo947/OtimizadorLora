@@ -8,6 +8,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-    int validator(Instance* instance, int idGateway, int idClient);
+    int validator(Instance* instance, int idG, int idC,vector< vector<long double> >* matrixSolution);
 
 #endif

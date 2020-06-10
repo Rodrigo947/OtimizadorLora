@@ -2,7 +2,7 @@
 #define INSTANCE_H
 
 #include <vector>
-#include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
+#include "json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;
@@ -29,6 +29,8 @@ class Instance
        json* getvGateways();
        json* getvClients();
        vector< vector<long double> >* getmatrixDistance();
+       long double getAlcanceMaximo(int dbm, int sf);
+       long double getSNRMinimo(int sf);
        long double getDistance(int idG, int idC);
 };
 

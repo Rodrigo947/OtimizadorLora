@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "Instance.h"
-#include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
+#include "json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;

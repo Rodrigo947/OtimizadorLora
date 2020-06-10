@@ -3,7 +3,7 @@
 #include <math.h>
 #include "Instance.h"
 #include "linkCalculator.h"
-#include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
+#include "json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;
@@ -56,12 +56,22 @@ json* Instance::getConfig(){
 json* Instance::getmatrixSNRMin(){
     return this->matrixSNRMin;
 };
+
+long double Instance::getSNRMinimo(int sf){
+    return this->matrixSNRMin->at(to_string(sf));
+};
+
 json* Instance::getSensibilidades(){
     return this->sensibilidades;
 };
 json* Instance::getmatrixAlcance(){
     return this->matrixAlcance;
 };
+
+long double Instance::getAlcanceMaximo(int dbm, int sf){
+    return this->matrixAlcance->at(to_string(dbm))[to_string(sf)];
+};
+
 json* Instance::getvGateways(){
     return this->vGateways;
 };

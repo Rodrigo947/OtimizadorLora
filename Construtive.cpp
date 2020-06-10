@@ -5,7 +5,7 @@
 #include "Instance.h"
 #include "Validator.h"
 #include "linkCalculator.h"
-#include "json-3.7.3/single_include/nlohmann/json.hpp" //leitor de json
+#include "json.hpp" //leitor de json
 
 using namespace std;
 using json = nlohmann::json;
@@ -48,11 +48,11 @@ void Construtive::Execute(Instance* instance){
     json* vClients = instance->getvClients();
     json* vGateways = instance->getvGateways();
     json* config = instance->getConfig();
-    float Gt = config->at("dbiGain").get<int>();
+    float Gt = config->at("dBiGain").get<float>();
     vector< vector<long double> >* matrixDistance = instance->getmatrixDistance();
 
-    //while (listaCanditados.size()!=0)
-    //{
+    while (listaCanditados.size()!=0)
+    {
         for (int i = 0; i < listaCanditados.size(); i++)
         {
             idC = listaCanditados[i]["idC"];
@@ -65,7 +65,7 @@ void Construtive::Execute(Instance* instance){
                     json* gateway = &vGateways->at(j);
                     int idG = gateway->at("id");
                     int quantDisp = gateway->at("quantDisp");
-                    if(validator(instance,idG,idC,&matrixSolution)==0){
+                    if(validator(instance,idG,idC,&matrixSolution) == 0){
                         razao = calcRazao(idG,idC,quantDisp,matrixDistance);
                         if(razao > listaCanditados[i]["val"]){
                             listaCanditados[i]["val"] = razao;
@@ -80,18 +80,24 @@ void Construtive::Execute(Instance* instance){
         ordenarLista();
         //indexNode=randomRang(0,α×|listaCandidatos|);
         escolhido = removeNode(indexNode);
-
-        Pt = vClients->at(escolhido["idD"].get<int>())["dbm"].get<int>();
-        d = matrixDistance->at(idG)[idC];
-        //Gr = ??
-        matrixSolution[escolhido["idG"]][escolhido["idC"]] = 0;//freeSpace(Pt,Gt,Gr,d,915);
+        Pt = vClients->at(escolhido["idC"].get<int>())["dbm"].get<int>();
+        d = instance->getDistance(escolhido["idG"],escolhido["idC"]);
+        matrixSolution[escolhido["idG"]][escolhido["idC"]] = freeSpace(Pt,Gt,Gt,d,915);
         
         quantDisp = vGateways->at(escolhido["idG"].get<int>())["quantDisp"].get<int>()+1;
         vGateways->at(escolhido["idG"].get<int>())["quantDisp"] = quantDisp;
-
-    //}
+        cout << listaCanditados.size() << endl;
+        for (int i = 0; i < listaCanditados.size(); i++)
+        {
+            cout << listaCanditados[i]["idG"] << " - " << listaCanditados[i]["idC"] << " : " << listaCanditados[i]["val"] << endl;
+        }
+        
+        
+    }
     
 }
+
+
 
 long double Construtive::calcRazao(int idG,int idC,int quantDisp, vector< vector<long double> >* matrixDistance){
 

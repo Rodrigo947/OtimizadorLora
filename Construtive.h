@@ -20,12 +20,13 @@ class Construtive
        void getCanditado(int index);
        void Execute(Instance* instance);
        long double calcRazao(int idG,int idD,int quantDisp,vector< vector<long double> >* matrixDistance);
-       void removeCandInv(); //Remove todos os canditados que não estão ligados a um Gateway
-       void ordenarLista();
-       json removeNode(int indexNode); //Remove da lista de canditados o canditado passado como parametro e o retorna
+       
+       //void ordenarLista();
+       int menorValor();
+       json removeNode(int indexNode); 
        long double calcInterferencia();
        
-       void ImprimirResultado();
+       void imprimirResultado(int dispInvalidos);
 };
 
 

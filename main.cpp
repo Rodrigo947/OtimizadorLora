@@ -16,7 +16,7 @@ int main()
     double ricochetModel = ricochet(17, 5, 5, 20, 20, 5000);
     cout << "\nFreeSpace " << freespaceModel << "\n";
     cout << "Ricochet " << ricochetModel << "\n\n";*/
-    ifstream file("instancias/instancia_200_800.txt");
+    ifstream file("instancias/instancia_200_800_7.txt");
     string line;
 
     getline(file, line, ';');
@@ -37,10 +37,13 @@ int main()
     getline(file, line, ';');
     json vClients = json::parse(line);
 
+
     Instance* instance = new Instance(&config, &matrizSNRMin, &sensibilidades, &matrizAlcance, &vGateways, &vClients);
+    //instance->getAllDist();
+    //instance->getAllPrs();
     Construtive* c = new Construtive(instance);
     c->Execute(instance);
-
+    
 
     file.close();
 

@@ -2,3 +2,4 @@
 *.txt
 cmake-build-debug
 .idea
+/instancias/*.txt

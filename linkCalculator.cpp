@@ -67,3 +67,7 @@ long double distance(long double lat1, long double long1,
 
     return ans;
 }
+
+long double snr(long double Pr, long double N){
+    return 10*log10( Pr/(N-Pr) );
+}

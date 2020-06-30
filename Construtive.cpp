@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <fstream>
 #include "Construtive.h"
 #include "Instance.h"
 #include "Validator.h"
@@ -34,6 +35,7 @@ Construtive::Construtive(Instance* instance)
         canditado["idC"] = i;
         canditado["idG"] = -1;
         canditado["val"] = -1; 
+        canditado["diferencaSNR"] = -1; 
         listaCanditados.push_back(canditado);
     }
 
@@ -43,13 +45,13 @@ Construtive::Construtive(Instance* instance)
 
 
 void Construtive::Execute(Instance* instance){
-    int idC,idG,val,quantDisp,Pt,indexNode=0;
-    long double razao,d;
+    int idC,idG,val,quantDisp,Pt,indexNode=0,dispInvalidos=0;
+    long double razao,d,SNRMin,Pr,N,SNR;
     json* vClients = instance->getvClients();
     json* vGateways = instance->getvGateways();
-    json* config = instance->getConfig();
-    float Gt = config->at("dBiGain").get<float>();
+    float Gt = instance->getdBiGain();
     vector< vector<long double> >* matrixDistance = instance->getmatrixDistance();
+
 
     while (listaCanditados.size()!=0)
     {
@@ -57,43 +59,52 @@ void Construtive::Execute(Instance* instance){
         {
             idC = listaCanditados[i]["idC"];
             idG = listaCanditados[i]["idG"];
+            SNRMin = instance->getSNRMinimo(vClients->at(idC)["sf"].get<int>());
             if(idG == escolhido["idG"]){
                 listaCanditados[i]["idG"] = -1;
                 listaCanditados[i]["val"] = -1;
+                listaCanditados[i]["diferencaSNR"] = -1;
                 for (int j=0; j < vGateways->size(); j++)
                 {
                     json* gateway = &vGateways->at(j);
                     int idG = gateway->at("id");
                     int quantDisp = gateway->at("quantDisp");
-                    if(validator(instance,idG,idC,&matrixSolution) == 0){
-                        razao = calcRazao(idG,idC,quantDisp,matrixDistance);
-                        if(razao > listaCanditados[i]["val"]){
-                            listaCanditados[i]["val"] = razao;
-                            listaCanditados[i]["idG"] = idG;
+                    if( matrixDistance->at(j)[i] != -1){
+                        Pr = instance->getPr(idG,idC);
+                        N = vGateways->at(idG)["N"];
+                        SNR = snr(Pr,N);
+                        if(SNR >= SNRMin){
+                            listaCanditados[i]["diferencaSNR"] = SNR-SNRMin;
+                            razao = calcRazao(idG,idC,quantDisp,matrixDistance);
+                            if(razao > listaCanditados[i]["val"]){
+                                cout<<razao;
+                                listaCanditados[i]["val"] = razao;
+                                listaCanditados[i]["idG"] = idG;
+                            }
                         }
+                        
                     }
                 }
-                
+                if( listaCanditados[i]["idG"] == -1){
+                    dispInvalidos++;
+                    removeNode(i);
+                    i--;
+                }
+                    
             }
         }
-        removeCandInv();
-        ordenarLista();
-        //indexNode=randomRang(0,α×|listaCandidatos|);
-        escolhido = removeNode(indexNode);
-        Pt = vClients->at(escolhido["idC"].get<int>())["dbm"].get<int>();
-        d = instance->getDistance(escolhido["idG"],escolhido["idC"]);
-        matrixSolution[escolhido["idG"]][escolhido["idC"]] = freeSpace(Pt,Gt,Gt,d,915);
         
-        quantDisp = vGateways->at(escolhido["idG"].get<int>())["quantDisp"].get<int>()+1;
-        vGateways->at(escolhido["idG"].get<int>())["quantDisp"] = quantDisp;
-        cout << listaCanditados.size() << endl;
-        for (int i = 0; i < listaCanditados.size(); i++)
-        {
-            cout << listaCanditados[i]["idG"] << " - " << listaCanditados[i]["idC"] << " : " << listaCanditados[i]["val"] << endl;
+        if(listaCanditados.size()!=0){
+            indexNode = menorValor();
+            escolhido = removeNode(indexNode);
+            matrixSolution[escolhido["idG"]][escolhido["idC"]] = escolhido["diferencaSNR"].get<long double>();
+            
+            quantDisp = vGateways->at(escolhido["idG"].get<int>())["quantDisp"].get<int>()+1;
+            vGateways->at(escolhido["idG"].get<int>())["quantDisp"] = quantDisp;
         }
-        
-        
+       
     }
+    imprimirResultado(dispInvalidos);
     
 }
 
@@ -108,16 +119,6 @@ long double Construtive::calcRazao(int idG,int idC,int quantDisp, vector< vector
 }
 
 /*
-    Remove todos os canditados que não estão ligados a um Gateway
-*/
-void Construtive::removeCandInv(){
-    for (int i = 0; i < listaCanditados.size(); i++)
-        if(listaCanditados[i]["idG"]==-1)
-            listaCanditados.erase(listaCanditados.begin()+i);
-}
-
-
-
 void swap(json* a, json* b)  
 {  
     json t = *a;  
@@ -151,11 +152,30 @@ void quickSort(vector<json>* arr, int low, int high)
         quickSort(arr, low, pi - 1);  
         quickSort(arr, pi + 1, high);  
     }  
-}  
+} 
 
 void Construtive::ordenarLista(){
     quickSort(&listaCanditados,0,listaCanditados.size()-1);
 }
+*/ 
+
+int Construtive::menorValor(){
+    int menorIndex = 0;
+    cout << this->listaCanditados[0]["val"].get<long double>();
+    long double menorVal = this->listaCanditados[0]["val"].get<long double>();
+    long double valAtual;
+    
+    for (int i = 1; i < this->listaCanditados.size(); i++){
+        valAtual = this->listaCanditados[i]["val"].get<long double>(); 
+        if (valAtual < menorVal)
+        {
+        menorIndex = i;
+        menorVal = valAtual;
+        }
+    }
+    return menorIndex;
+}
+    
 
 json Construtive::removeNode(int indexNode){
     json aux = listaCanditados[indexNode];
@@ -169,5 +189,36 @@ void Construtive::getCanditado(int index){
 }
 
 
+void Construtive::imprimirResultado(int dispInvalidos){
+    long double somatorio = 0;
+    ofstream myfile ("resultado.txt");
+    if (myfile.is_open())
+    {
+        for (int i = 0; i < matrixSolution.size(); i++)
+        {   
+            myfile << i << "-> ";
+            for (int j = 0; j < matrixSolution[i].size(); j++)
+                if( matrixSolution[i][j] != -1)
+                    myfile << j << ":" << matrixSolution[i][j] << ", ";
+            myfile << "\n";   
+        }
 
+        for (int i = 0; i < matrixSolution[0].size(); i++)
+        {   
+            myfile << i << "-> ";
+            for (int j = 0; j < matrixSolution.size(); j++)
+                if( matrixSolution[j][i] != -1){
+                    myfile << j << ":" << matrixSolution[j][i];
+                    somatorio += matrixSolution[j][i];
+                    break;
+                }
+                    
+            myfile << "\n";   
+        }
+        cout << "Dispositivos sem Gateway: " << dispInvalidos << endl;
+        cout << "Total: " << somatorio;
+    }
+    else cout << "Unable to open file";
+    
+}
     

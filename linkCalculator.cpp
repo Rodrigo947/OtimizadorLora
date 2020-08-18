@@ -7,20 +7,12 @@
 
 using namespace std;
 
-double Pr_dBm(float Pt, float Gt, float Gr, float d, int f);
-double Pr(float Pt, float Gt, float Gr, float d, int f);
-
-double ricochet(float Pt, float Gt, float Gr, float Ht, float Hr, float d);
-long double snr(float P, float N);
-long double dBm2mW(float P);
-long double mW2dBm(float PdB);
-
 /*  @params: 
  *
  * P -> Power (mW)
  * N -> Noise (mW)
 */
-long double snr(float P, float N) {
+long double snr(long double P, long double N) {
     return 20*log10(P/N);
 }
 
@@ -28,7 +20,7 @@ long double snr(float P, float N) {
  *
  * P -> Power (dBm)
 */
-long double dBm2mW(float P) {
+long double dBm2mW(long double P) {
     return pow(10, P/10);
 }
 
@@ -36,7 +28,7 @@ long double dBm2mW(float P) {
  *
  * P -> Power (mW )
 */
-long double mW2dBm(float PdB) {
+long double mW2dBm(long double PdB) {
     return 10*log10(PdB);
 }
 
@@ -60,7 +52,7 @@ double Pr_dBm(float Pt, float Gt, float Gr, float d, int f) {
  * d  -> Distance (meters)
  * f  -> Frequency (MHz)
 */
-double Pr(float Pt, float Gt, float Gr, float d, int f) {
+long double calcPr(float Pt, float Gt, float Gr, long double d, int f) {
     return Pt*Gt*Gr*pow(300/(4*PI*d*f), 2); // Pt + Gt + Gr - 32.44 - 20*log10(d/1000) - 20*log10(f);
 }
 
@@ -73,13 +65,13 @@ double Pr(float Pt, float Gt, float Gr, float d, int f) {
  * Hr -> Rx antenna height (meters)
  * d  -> Distance (meters)
 */
-double ricochet(float Pt, float Gt, float Gr, float Ht, float Hr, float d) {
+long double ricochet(float Pt, float Gt, float Gr, float Ht, float Hr, float d) {
     return Pt + Gt + Gr + 20*log10(Ht) + 20*log10(Hr) - 40*log10(d);
 }
 
 long double toRadians(const long double degree)
 {
-    long double one_deg = (M_PI) / 180;
+    long double one_deg = PI / 180;
     return (one_deg * degree);
 }
 
@@ -113,6 +105,4 @@ long double distance(long double lat1, long double long1,
     return ans;
 }
 
-long double snr(long double Pr, long double N){
-    return 10*log10( Pr/(N-Pr) );
-}
+

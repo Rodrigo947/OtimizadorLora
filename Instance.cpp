@@ -6,151 +6,99 @@
 #include "linkCalculator.h"
 #include "json.hpp" //leitor de json
 
-
 using namespace std;
 using json = nlohmann::json;
 
-Instance::Instance(json* config, json* matrixSNRMin, json* sensibilidades, json* matrixAlcance, json* vGateways, json* vClients)
+Instance::Instance(json *config, json *vAssignPoints, json *vClients, double maxRange)
 {
-    
+
     this->config = config;
-    this->matrixSNRMin = matrixSNRMin;
-    this->sensibilidades = sensibilidades;
-    this->matrixAlcance = matrixAlcance;
-    this->vGateways = vGateways;
+    this->vAssignPoints = vAssignPoints;
     this->vClients = vClients;
+    this->maxRange = maxRange;
     populaMatrix();
 }
 
 /*
-    Calcula a distancia entre todos os Gateways e Dispositivos com sf iguais 
+    Calcula a distancia entre todos os clientes e os possiveis locais de gateways
     e popula a matriz de distancia
 */
 void Instance::populaMatrix()
 {
-    int ptc,sf;
-    long double lngG,latG,lngC,latC,d,alcanceMax,Pr;
-    float Gt = getdBiGain();
-    float Pt;
+    int ptc, sf;
+    long double lngA, latA, lngC, latC, d;
 
-    for (int i = 0; i < vGateways->size(); i++){
+    for (int i = 0; i < vAssignPoints->size(); i++)
+    {
         vector<long double> rowDistance;
-        vector<long double> rowPr;
-        lngG = vGateways->at(i)["lng"];
-        latG = vGateways->at(i)["lat"];
-        vGateways->at(i)["quantDisp"] = 0;
-        vGateways->at(i)["N"] = 0;
-        
-        for (int j = 0; j < vClients->size(); j++){
-            if(vGateways->at(i)["sf"] == vClients->at(j)["sf"]){ //Apenas se o par Gateway e Client possuirem sf iguais
-                lngC = vClients->at(j)["lng"];
-                latC = vClients->at(j)["lat"];
-                
-                ptc = vClients->at(j)["ptc"];
-                sf = vClients->at(j)["sf"];
-                alcanceMax = getAlcanceMaximo(ptc,sf);
-                d = distance(latG,lngG,latC,lngC);
-                
-                if( d < alcanceMax){ //Apenas se o par Gateway e Client possuem uma distancia menor do que definida na tabela de alcance
-                    rowDistance.push_back(d);
-                    Pt = vClients->at(i)["ptc"].get<int>();
-                    Pr = freeSpace(Pt,Gt,Gt,d,915);
-                    vGateways->at(i)["N"] = Pr + vGateways->at(i)["N"].get<long double>();
-                    rowPr.push_back( Pr );
-                }
-                else{
-                    rowPr.push_back(-1);
-                    rowDistance.push_back(-1);
-                }
-               
-            }
-            else{
-                rowPr.push_back(-1);
+        lngA = vAssignPoints->at(i)["lng"];
+        latA = vAssignPoints->at(i)["lat"];
+
+        for (int j = 0; j < vClients->size(); j++)
+        {
+            lngC = vClients->at(j)["lng"];
+            latC = vClients->at(j)["lat"];
+
+            d = distance(latA, lngA, latC, lngC);
+
+            if (d <= maxRange)
+                rowDistance.push_back(d);
+            else
                 rowDistance.push_back(-1);
-            }
-            
-        }   
-        matrixPr.push_back(rowPr);
+        }
+
         matrixDistance.push_back(rowDistance);
     }
 }
 
 //GETERS
-json* Instance::getConfig(){
-    return this->config;
+
+int Instance::getQuantClients()
+{
+    return this->config->at("clients").get<int>();
 };
-float Instance::getdBiGain(){
-    return this->config->at("dBiGain").get<float>();
+int Instance::getQuantGateways()
+{
+    return this->config->at("gateways").get<int>();
 };
-json* Instance::getmatrixSNRMin(){
-    return this->matrixSNRMin;
+int Instance::getQuantAssignPoints()
+{
+    return this->config->at("assignPoints").get<int>();
+};
+double Instance::getMaxRange()
+{
+    return this->maxRange;
 };
 
-long double Instance::getSNRMinimo(int sf){
-    return this->matrixSNRMin->at(to_string(sf));
-};
-
-json* Instance::getSensibilidades(){
-    return this->sensibilidades;
-};
-json* Instance::getmatrixAlcance(){
-    return this->matrixAlcance;
-};
-
-long double Instance::getAlcanceMaximo(int dbm, int sf){
-    return this->matrixAlcance->at(to_string(dbm))[to_string(sf)];
-};
-
-json* Instance::getvGateways(){
-    return this->vGateways;
-};
-json* Instance::getvClients(){
-    return this->vClients;
-};
-
-vector< vector<long double> >*  Instance::getmatrixDistance(){
-    return &this->matrixDistance;
-};
-
-long double Instance::getDistance(int idGateway,int idClient){
-    return matrixDistance[idGateway][idClient];
+long double Instance::getDistance(int idAssignPoint, int idClient)
+{
+    return matrixDistance[idAssignPoint][idClient];
 }
 
-long double Instance::getPr(int idGateway,int idClient){
-    return matrixPr[idGateway][idClient];
+json *Instance::getClient(int id)
+{
+    return &vClients->at(id);
 }
+
+json *Instance::getAssignPoint(int id)
+{
+    return &vAssignPoints->at(id);
+}
+
 /*
     Imprime em um arquivo a matriz de distancias
 */
-void Instance::getAllDist(){
-    ofstream myfile ("distanceTable.txt");
-    myfile << "DISTANCE TABLE" << "\n";
+void Instance::getAllDist()
+{
+    ofstream myfile("resultados/matrixDistance.csv");
 
     for (int gateway = 0; gateway < matrixDistance.size(); gateway++)
     {
-        for (int client = 0; client < matrixDistance[gateway].size(); client++){
+        for (int client = 0; client < matrixDistance[gateway].size(); client++)
+        {
             long double dist = matrixDistance[gateway][client];
-            myfile << dist << " ";
+            myfile << dist << "\t";
         }
-        myfile << "\n";   
+        myfile << "\n";
     }
-    
-}
-
-/*
-    Imprime em um arquivo a matriz de Prs
-*/
-void Instance::getAllPrs(){
-    ofstream myfile ("PrTable.txt");
-    myfile << "Pr TABLE" << "\n";
-
-    for (int gateway = 0; gateway < matrixPr.size(); gateway++)
-    {
-        for (int client = 0; client < matrixPr[gateway].size(); client++){
-            long double dist = matrixPr[gateway][client];
-            myfile << dist << " ";
-        }
-        myfile << "\n";   
-    }
-    
 }

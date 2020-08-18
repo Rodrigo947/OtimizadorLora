@@ -9,35 +9,27 @@ using json = nlohmann::json;
 
 class Instance
 {
-    private:
-        json* config;
-        json* matrixSNRMin;
-        json* sensibilidades;
-        json* matrixAlcance;
-        json* vGateways;
-        json* vClients;
-        vector< vector<long double> > matrixDistance;
-        vector< vector<long double> > matrixPr;
+private:
+    json *config;
+    json *vAssignPoints;
+    json *vClients;
+    double maxRange;
+    vector<vector<long double>> matrixDistance; //Distancia entre os clientes e os possiveis locais de gateways
 
-    public:
-       Instance(json* config, json* matrizSNRMin, json* sensibilidades, json* matrizAlcance, json* vGateways, json* vClients);
-       void populaMatrix();
-       void getAllDist();
-       void getAllPrs();
-       json* getConfig();
-       float getdBiGain();
-       json* getmatrixSNRMin();
-       json* getSensibilidades();
-       long double getSNRMinimo(int sf);
-       json* getmatrixAlcance();
-       json* getvGateways();
-       json* getvClients();
-       vector< vector<long double> >* getmatrixDistance();
-       long double getAlcanceMaximo(int dbm, int sf);
-       long double getDistance(int idG, int idC);
-       long double getPr(int idG, int idC);
-      
+public:
+    Instance(json *config, json *vAssignPoints, json *vClients, double maxRange);
+    void populaMatrix();
+
+    //Configs
+    int getQuantClients();
+    int getQuantGateways();
+    int getQuantAssignPoints();
+    double getMaxRange();
+    //--
+    json *getClient(int id);
+    json *getAssignPoint(int id);
+    long double getDistance(int idAssignPoint, int idClient);
+    void getAllDist();
 };
-
 
 #endif

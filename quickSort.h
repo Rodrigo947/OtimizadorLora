@@ -8,5 +8,6 @@ using namespace std;
 using json = nlohmann::json;
 
 void quickSort(vector<json> *arr, int low, int high);
+void quickSortDesc(vector<json> *arr, int low, int high);
 
 #endif

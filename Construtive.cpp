@@ -2,6 +2,7 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
+#include <time.h>
 #include "Construtive.h"
 #include "Instance.h"
 #include "linkCalculator.h"
@@ -56,8 +57,11 @@ Construtive::Construtive(Instance *inst, float raio)
 }
 
 int Construtive::randomK(float alfa, int size)
-{
-    return alfa * (size - 1);
+{   
+    if(alfa==0) return 0;
+    srand(time(NULL));
+    int maximo = alfa*(size-1);
+    return rand() % maximo;
 }
 
 void Construtive::removeEscolhido(int idEscolhido)
@@ -128,17 +132,18 @@ long double Construtive::calcSNRMinimo(Instance *inst){
                 if(SNR>=-7.5) dispOuvidos++;
                 else dispInoperantes++;
                 if(SNR<SNRminima) SNRminima = SNR;
+                if(SNR>SNRmaxima) SNRmaxima = SNR;
+                SNRmedia += SNR;
             }
             
         }
         
     }
-    
+    SNRmedia = SNRmedia/qntClients;
     return SNRminima;
 }
 
-void Construtive::Execute(Instance *inst, float alfa1, float alfa2)
-{
+void Construtive::Execute(Instance *inst, float alfa1, float alfa2){
     int k, idEscolhido;
 
     // 1º Fase - Selecionando os locais dos Gateways
@@ -146,8 +151,8 @@ void Construtive::Execute(Instance *inst, float alfa1, float alfa2)
 
     for (int i = 0; i < qntGateways; i++)
     {
-        quickSort(&listaCandidatos, 0, listaCandidatos.size() - 1);
-        k = randomK(1, listaCandidatos.size());
+        quickSortDesc(&listaCandidatos, 0, listaCandidatos.size() - 1);
+        k = randomK(alfa1, listaCandidatos.size());
         idEscolhido = listaCandidatos[k]["id"];
         gatewaysEscolhidos.push_back(idEscolhido);
         removeEscolhido(idEscolhido);
@@ -170,27 +175,29 @@ void Construtive::Execute(Instance *inst, float alfa1, float alfa2)
             listaCandidatos.push_back(candidato);
         }
         quickSort(&listaCandidatos, 0, listaCandidatos.size() - 1);
-        k = randomK(0, listaCandidatos.size());
+        k = randomK(alfa2, listaCandidatos.size());
         idEscolhido = listaCandidatos[k]["id"];
         distancia = listaCandidatos[k]["quant"];
         matrixSolution[idEscolhido][c] = distancia;
     }
-    imprimirResultado(inst);
+    imprimirResultado(inst,alfa1,alfa2);
 }
 
-void Construtive::imprimirResultado(Instance *inst)
+void Construtive::imprimirResultado(Instance *inst, float alfa1, float alfa2)
 {
     //long double somatorio = 0;
     int qntClients = inst->getQuantClients();
     int qntGateways = inst->getQuantGateways();
 
-    ofstream myfile("resultados/resultadoJSON_"+to_string(qntGateways)+"_"+to_string(qntClients)+"_"+to_string(raio)+".txt");
+    ofstream myfile("resultados/resultadoJSON_"+to_string(qntClients)+"_"+to_string(qntGateways)+"_"+to_string(raio).substr(0,4)+"_"+to_string(alfa1).substr(0,3)+"_"+to_string(alfa2).substr(0,3)+".txt");
     if (myfile.is_open())
     {
         json resultado, *client;
         int idG;
         json geral;
         geral["SNRminimo"] = calcSNRMinimo(inst);
+        geral["SNRmaximo"] = SNRmaxima;
+        geral["SNRmedia"] = SNRmedia;
         geral["dispOuvidos"] = dispOuvidos;
         geral["dispInoperantes"] = dispInoperantes;
         geral["raio"] = raio;

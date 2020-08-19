@@ -18,6 +18,7 @@ private:
     float raio;
     int dispOuvidos;
     int dispInoperantes;
+    long double SNRmaxima = -99999, SNRmedia = 0;
 
     int randomK(float alfa, int size);
     void removeEscolhido(int idEscolhido);
@@ -28,7 +29,7 @@ private:
 public:
     Construtive(Instance *inst, float raio);
     void Execute(Instance *instance, float alfa1, float alfa2);
-    void imprimirResultado(Instance *inst);
+    void imprimirResultado(Instance *inst,float alfa1, float alfa2);
     void printMatrixAdjacencia();
     void printListaCandidatos();
 };

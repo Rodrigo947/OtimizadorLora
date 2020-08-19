@@ -6,7 +6,6 @@
 #include "Instance.h"
 #include "Construtive.h"
 #include "json.hpp" //leitor de json
-
 using namespace std;
 using json = nlohmann::json;
 
@@ -28,9 +27,8 @@ int main()
     file.close();
 
     //BW = 500 / SF=7 / Potencia=14 / dbi=2.15 /
-
     Instance *instance = new Instance(&config, &vAssignPoints, &vClients, 135.39);
-    Construtive *cons = new Construtive(instance, 10);
-    cons->Execute(instance, 1, 1);
+    Construtive *cons = new Construtive(instance, 0.5);
+    cons->Execute(instance, 1, 0);
 
 }
